@@ -3,16 +3,16 @@
 
 This document is my attempt to formally explain my mental model of React. The intention is to describe this in terms of deductive reasoning that lead us to this design.
 
-在这片文章中，我尝试对于我脑海中的react进行正式的描述。目的是以推导的方式描述这个模型，引领我们了解它的设计。
+在这篇文章，是我描述头脑中react模型的一次尝试。目的是通过推导的方式描述这个模型，从而引领我们了解它的设计。
 
 There may certainly be some premises that are debatable and the actual design of this example may have bugs and gaps. This is just the beginning of formalizing it. Feel free to send a pull request if you have a better idea of how to formalize it. The progression from simple -> complex should make sense along the way without too much library details shining through.
 
-会有很多前提条件是有争议的，例子的设计也可能有bug或缺陷。这只是我们形式化描述他的开始。
-如果你有更好的描述它的想法请给我们提交pull request。过程会从简单->复杂，其中不会展示太多实现的细节。
+这其中会有很多前提条件是有争议的，例子的设计也可能有bug或缺陷。这只是我们形式化描述他的开始。
+如果你有更好的描述它的办法请给我们提交pull request。过程会从简单->复杂，其中不会展示太多实现的细节。
 
 The actual implementation of React.js is full of pragmatic solutions, incremental steps, algorithmic optimizations, legacy code, debug tooling and things you need to make it actually useful. Those things are more fleeting, can change over time if it is valuable enough and have high enough priority. The actual implementation is much more difficult to reason about.
 
-React.js的实现中充满了实用的解决办法，渐进的步骤，算法的优化，老旧代码的处理，debug工具和其他的有用的东西。那些东西是飞速变化的，。具体实现更加的难以推导的。
+React.js的实现中充满了实用的解决办法，渐进的步骤，算法的优化，老旧代码的处理，debug工具和其他的有用的东西。那些东西是飞速变化的。具体实现更加的难以推导的。
 
 I like to have a simpler mental model that I can ground myself in.
 
@@ -94,7 +94,8 @@ function UserBox(user) {
 ## 状态
 
 A UI is NOT simply a replication of server / business logic state. There is actually a lot of state that is specific to a specific projection and not others. For example, if you start typing in a text field. That may or may not be replicated to other tabs or to your mobile device. Scroll position is a typical example that you almost never want to replicate across multiple projections.
-UI不是 服务器/业务逻辑 状态的简单复制。有很多的状态仅仅对应一个映射。举个例子，如果你在文本框打字，可能你不大想要把它复制到其他的tab或者你的手机中。Scroll position也是一个典型的例子，你不大想要把它复制到其他映射中。
+
+UI不是 服务器/业务逻辑 状态的简单复制。有很多的状态仅仅对应一个映射。举个例子，如果你在文本框打字，可能你不大想要把它复制到其他的tab或者你的手机上。Scroll position也是一个典型的例子，你不大想要把它复制到其他映射中。
 
 We tend to prefer our data model to be immutable. We thread functions through that can update state as a single atom at the top.
 我们倾向于我们的数据模型是不可变的。
@@ -196,9 +197,17 @@ UserList(data.users, likesPerUser, updateUserLikes);
 
 Unfortunately, since there are so many list of lists all over the place in UIs, it becomes quite a lot of boilerplate to manage that explicitly.
 
+不幸的是，由于有许多list遍布在UI各个地方，我们要用许多模板代码显式的管理他们。
+
 We can move some of this boilerplate out of our critical business logic by deferring execution of a function. For example, by using "currying" (`bind` in JavaScript). Then we pass the state through from outside our core functions that are now free of boilerplate.
 
+我们可以通过延迟函数的执行来将一些模板代码从业务逻辑中移除出去。比如，用"currying" (`bind` in JavaScript)。之后我们将状态从核心函数外部传入，这样我们就不需要模板代码了。
+
+
+
 This isn't reducing boilerplate but is at least moving it out of the critical business logic.
+
+这个例子并没有减少模板代码，但是至少我们将它移出了核心业务逻辑。
 
 ```js
 function FancyUserList(users) {
@@ -218,6 +227,7 @@ const resolvedBox = {
 ## State Map
 
 We know from earlier that once we see repeated patterns we can use composition to avoid reimplementing the same pattern over and over again. We can move the logic of extracting and passing state to a low-level function that we reuse a lot.
+
 从前面的内容我们了解到，当我们看到重复的pattern时，我们可以用组合的方法避免一次又一次的重复实现同一种pattern。
 
 ```js
@@ -260,6 +270,7 @@ Once we want to memoize multiple items in a list memoization becomes much harder
 Luckily, UIs tend to be fairly stable in the same position. The same position in the tree gets the same value every time. This tree turns out to be a really useful strategy for memoization.
 
 幸运的是， UI在一些位置相对稳定。每次树上的同一个位置总是得到同一个值。这个树变成了记忆有用的策略。
+
 We can use the same trick we used for state and pass a memoization cache through the composable function.
 
 我们可以用相同的技巧，通过组合函数传递记忆缓存
